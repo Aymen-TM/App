@@ -1,9 +1,9 @@
 {
   "/not-found": "app/not-found.js",
-  "/dashboard-vendeur/page": "app/dashboard-vendeur/page.js",
   "/listings/page": "app/listings/page.js",
-  "/demande-vendeur/page": "app/demande-vendeur/page.js",
   "/login-vendeur/page": "app/login-vendeur/page.js",
+  "/demande-vendeur/page": "app/demande-vendeur/page.js",
   "/page": "app/page.js",
-  "/voiture/[id]/page": "app/voiture/[id]/page.js"
+  "/voiture/[id]/page": "app/voiture/[id]/page.js",
+  "/dashboard-vendeur/page": "app/dashboard-vendeur/page.js"
 }

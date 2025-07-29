@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { MapPin, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+import { Vendor } from '@/data/mockCars'
+
 interface VoitureCardProps {
   id: string
   marque: string
@@ -13,8 +15,10 @@ interface VoitureCardProps {
   ville: string
   image: string
   disponible: boolean
-type?: string
+  type?: string
   options?: string[]
+  vendorId?: string
+  vendors?: Vendor[]
 }
 
 export default function VoitureCard({
@@ -28,7 +32,9 @@ export default function VoitureCard({
   disponible,
 
   type,
-  options = []
+  options = [],
+  vendorId,
+  vendors = []
 }: VoitureCardProps) {
   const router = useRouter()
 
@@ -79,6 +85,16 @@ export default function VoitureCard({
           <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
           <span className="text-sm">{ville}</span>
         </div>
+        
+        {/* Vendor Info */}
+        {vendorId && vendors.length > 0 && (
+          <div className="flex items-center text-sm text-gray-500 mt-1">
+            <span>Vendeur: </span>
+            <span className="font-medium text-gray-700 ml-1">
+              {vendors.find(v => v.id === vendorId)?.name || 'Inconnu'}
+            </span>
+          </div>
+        )}
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">

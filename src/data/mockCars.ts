@@ -1,3 +1,14 @@
+export interface Vendor {
+  id: string
+  name: string
+  rating: number
+  reviewCount: number
+  yearsActive: number
+  image: string
+  verified: boolean
+  speciality: string
+}
+
 export interface Car {
   id: number
   marque: string
@@ -15,7 +26,42 @@ export interface Car {
   carburant: string
   places: number
   portes: number
+  vendorId: string
 }
+
+// Define some vendors
+export const vendors: Vendor[] = [
+  {
+    id: 'vendor-1',
+    name: 'Auto Premium',
+    rating: 4.9,
+    reviewCount: 128,
+    yearsActive: 8,
+    image: '/vendors/auto-premium.jpg',
+    verified: true,
+    speciality: 'Voitures de luxe et premium'
+  },
+  {
+    id: 'vendor-2',
+    name: 'Eco Location',
+    rating: 4.8,
+    reviewCount: 95,
+    yearsActive: 5,
+    image: '/vendors/eco-location.jpg',
+    verified: true,
+    speciality: 'Véhicules économiques et écologiques'
+  },
+  {
+    id: 'vendor-3',
+    name: 'Family Cars',
+    rating: 4.7,
+    reviewCount: 112,
+    yearsActive: 6,
+    image: '/vendors/family-cars.jpg',
+    verified: true,
+    speciality: 'Véhicules familiaux spacieux'
+  }
+]
 
 export const mockCars: Car[] = [
   {
@@ -34,7 +80,8 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Diesel',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-1'
   },
   {
     id: 2,
@@ -52,7 +99,8 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Diesel',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-1'
   },
   {
     id: 3,
@@ -70,7 +118,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Essence',
     places: 5,
-    portes: 3
+    portes: 3,
+    vendorId: 'vendor-3'
   },
   {
     id: 4,
@@ -88,7 +137,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Essence',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-2'
   },
   {
     id: 5,
@@ -106,7 +156,8 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Diesel',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-2'
   },
   {
     id: 6,
@@ -124,7 +175,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Essence',
     places: 5,
-    portes: 4
+    portes: 4,
+    vendorId: 'vendor-1'
   },
   {
     id: 7,
@@ -142,7 +194,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Hybride',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-2'
   },
   {
     id: 8,
@@ -160,7 +213,8 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Essence',
     places: 4,
-    portes: 3
+    portes: 3,
+    vendorId: 'vendor-3'
   },
   {
     id: 9,
@@ -178,7 +232,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Diesel',
     places: 5,
-    portes: 4
+    portes: 4,
+    vendorId: 'vendor-1'
   },
   {
     id: 10,
@@ -196,7 +251,8 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Essence',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-2'
   },
   {
     id: 11,
@@ -214,7 +270,8 @@ export const mockCars: Car[] = [
     transmission: 'Automatique',
     carburant: 'Essence',
     places: 5,
-    portes: 5
+    portes: 5,
+    vendorId: 'vendor-2'
   },
   {
     id: 12,
@@ -232,6 +289,7 @@ export const mockCars: Car[] = [
     transmission: 'Manuelle',
     carburant: 'Diesel',
     places: 5,
-    portes: 4
+    portes: 4,
+    vendorId: 'vendor-3'
   }
 ]

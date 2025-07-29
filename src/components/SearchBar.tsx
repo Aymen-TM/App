@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, MapPin, Car, ChevronDown, Filter } from 'lucide-react'
+import TagInput from './TagInput'
+import { vendors } from '@/data/mockCars'
 
 interface SearchFilters {
   location?: string
@@ -14,6 +16,7 @@ interface SearchFilters {
   yearMax?: string
   type?: string[]
   options?: string[]
+  vendors?: string[]
 }
 
 interface SearchBarProps {
@@ -59,6 +62,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   const [anneeMax, setAnneeMax] = useState('')
   const [type, setType] = useState('')
   const [options, setOptions] = useState<string[]>([])
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([])
   
   // UI states
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -75,7 +79,8 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       startDate: dateDebut || undefined,
       endDate: dateFin || undefined,
       type: type ? [type] : undefined,
-      options: options.length > 0 ? options : undefined
+      options: options.length > 0 ? options : undefined,
+      vendors: selectedVendors.length > 0 ? selectedVendors : undefined
     }
     
     if (onSearch) {
@@ -214,6 +219,24 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 </div>
               </div>
 
+              {/* Vendor Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vendeurs
+                </label>
+                <TagInput
+                  tags={selectedVendors}
+                  suggestions={vendors}
+                  onAdd={(vendorId) => setSelectedVendors(prev => 
+                    prev.includes(vendorId) ? prev : [...prev, vendorId]
+                  )}
+                  onRemove={(vendorId) => 
+                    setSelectedVendors(prev => prev.filter(id => id !== vendorId))
+                  }
+                  placeholder="Rechercher un vendeur..."
+                />
+              </div>
+
               {/* Options */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,7 +265,10 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
         {/* Bouton de recherche */}
         <div className="pt-2">
-          <button type="submit" className="btn-primary w-full">
+          <button 
+            type="submit" 
+            className="btn-primary w-full py-3 text-lg font-medium flex items-center justify-center"
+          >
             <Search className="h-5 w-5 mr-2" />
             Rechercher
           </button>

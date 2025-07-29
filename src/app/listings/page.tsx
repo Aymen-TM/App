@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Search, X, Filter, Loader2 } from 'lucide-react';
+import TagInput from '@/components/TagInput';
 import { useDebounce } from 'use-debounce';
 import VoitureCard from '@/components/VoitureCard';
-import { mockCars, Car } from '@/data/mockCars';
+import { mockCars, Car, vendors } from '@/data/mockCars';
 
 // List of available car types and options for filters
 const CAR_TYPES = [...new Set(mockCars.map(car => car.type))].sort();
@@ -24,6 +25,7 @@ export default function ListingsPage() {
   const [yearMax, setYearMax] = useState<string>('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
   // Debounced values for search inputs
@@ -43,6 +45,7 @@ export default function ListingsPage() {
     setYearMax(params.get('yearMax') || '');
     setSelectedTypes(params.get('type')?.split(',').filter(Boolean) || []);
     setSelectedOptions(params.get('options')?.split(',').filter(Boolean) || []);
+    setSelectedVendors(params.get('vendors')?.split(',').filter(Boolean) || []);
   }, [searchParams]);
   
   // Update URL with current filters
@@ -57,6 +60,7 @@ export default function ListingsPage() {
     if (yearMax) params.set('yearMax', yearMax);
     if (selectedTypes.length > 0) params.set('type', selectedTypes.join(','));
     if (selectedOptions.length > 0) params.set('options', selectedOptions.join(','));
+    if (selectedVendors.length > 0) params.set('vendors', selectedVendors.join(','));
     
     const queryString = params.toString();
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
@@ -66,72 +70,77 @@ export default function ListingsPage() {
     
     // Small delay to ensure smooth UI update
     setTimeout(() => setIsFiltering(false), 500);
-  }, [marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions, pathname, router]);
+  }, [marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions, selectedVendors, pathname, router]);
   
   // Update URL when debounced values change
   useEffect(() => {
     updateUrlFilters();
-  }, [debouncedMarque, debouncedModele, location, yearMin, yearMax, selectedTypes, selectedOptions, updateUrlFilters]);
+  }, [debouncedMarque, debouncedModele, location, yearMin, yearMax, selectedTypes, selectedOptions, selectedVendors, updateUrlFilters]);
   
   // Filter cars based on selected filters
   const filteredCars = useMemo(() => {
     setIsFiltering(true);
     const result = mockCars.filter((car: Car) => {
-    try {
-      // Filter by marque (case insensitive)
-      if (marque && typeof marque === 'string' && 
-          car.marque && typeof car.marque === 'string' && 
-          !car.marque.toLowerCase().includes(marque.toLowerCase())) {
-        return false;
-      }
-      
-      // Filter by modele (case insensitive)
-      if (modele && typeof modele === 'string' && 
-          car.modele && typeof car.modele === 'string' && 
-          !car.modele.toLowerCase().includes(modele.toLowerCase())) {
-        return false;
-      }
-      
-      // Filter by location
-      if (location && car.location !== location) {
-        return false;
-      }
-      
-      // Filter by year range
-      const minYear = yearMin ? parseInt(yearMin, 10) : 0;
-      const maxYear = yearMax ? parseInt(yearMax, 10) : Number.MAX_SAFE_INTEGER;
-      
-      if (isNaN(minYear) || isNaN(maxYear) || 
-          typeof car.annee !== 'number' || 
-          car.annee < minYear || 
-          car.annee > maxYear) {
-        return false;
-      }
-      
-      // Filter by car type
-      if (selectedTypes.length > 0 && car.type && !selectedTypes.includes(car.type)) {
-        return false;
-      }
-      
-      // Filter by options (all selected options must be present in car.options)
-      if (selectedOptions.length > 0 && Array.isArray(car.options)) {
-        if (!selectedOptions.every(option => 
-          typeof option === 'string' && car.options?.includes(option))) {
+      try {
+        // Filter by marque (case insensitive)
+        if (marque && typeof marque === 'string' && 
+            car.marque && typeof car.marque === 'string' && 
+            !car.marque.toLowerCase().includes(marque.toLowerCase())) {
           return false;
         }
+        
+        // Filter by modele (case insensitive)
+        if (modele && typeof modele === 'string' && 
+            car.modele && typeof car.modele === 'string' && 
+            !car.modele.toLowerCase().includes(modele.toLowerCase())) {
+          return false;
+        }
+        
+        // Filter by location
+        if (location && car.location !== location) {
+          return false;
+        }
+        
+        // Filter by year range
+        const minYear = yearMin ? parseInt(yearMin, 10) : 0;
+        const maxYear = yearMax ? parseInt(yearMax, 10) : Number.MAX_SAFE_INTEGER;
+        
+        if (isNaN(minYear) || isNaN(maxYear) || 
+            typeof car.annee !== 'number' || 
+            car.annee < minYear || 
+            car.annee > maxYear) {
+          return false;
+        }
+        
+        // Filter by car type
+        if (selectedTypes.length > 0 && car.type && !selectedTypes.includes(car.type)) {
+          return false;
+        }
+        
+        // Filter by options (all selected options must be present in car.options)
+        if (selectedOptions.length > 0 && Array.isArray(car.options)) {
+          if (!selectedOptions.every(option => 
+            typeof option === 'string' && car.options?.includes(option))) {
+            return false;
+          }
+        }
+        
+        // Filter by vendor
+        if (selectedVendors.length > 0 && car.vendorId && !selectedVendors.includes(car.vendorId)) {
+          return false;
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error filtering cars:', error);
+        return false;
       }
-      
-      return true;
-    } catch (error) {
-      console.error('Error filtering cars:', error);
-      return false;
-    }
     });
     
     // Small delay to show loading state for better UX
     setTimeout(() => setIsFiltering(false), 100);
     return result;
-  }, [marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions]);
+  }, [marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions, selectedVendors]);
   
   // Handle filter changes (no longer needed with debounced updates)
   const handleFilterChange = useCallback(() => {
@@ -147,6 +156,7 @@ export default function ListingsPage() {
     setYearMax('');
     setSelectedTypes([]);
     setSelectedOptions([]);
+    setSelectedVendors([]);
     router.replace(pathname, { scroll: false });
   }, [pathname, router]);
   
@@ -157,6 +167,18 @@ export default function ListingsPage() {
         ? prev.filter(t => t !== type)
         : [...prev, type]
     );
+  }, []);
+  
+  // Handle adding a vendor tag
+  const handleAddVendor = useCallback((vendorId: string) => {
+    setSelectedVendors(prev => 
+      prev.includes(vendorId) ? prev : [...prev, vendorId]
+    );
+  }, []);
+  
+  // Handle removing a vendor tag
+  const handleRemoveVendor = useCallback((vendorId: string) => {
+    setSelectedVendors(prev => prev.filter(id => id !== vendorId));
   }, []);
   
   // Toggle option selection with memoization
@@ -176,7 +198,8 @@ export default function ListingsPage() {
     yearMin !== '' || 
     yearMax !== '' || 
     selectedTypes.length > 0 || 
-    selectedOptions.length > 0;
+    selectedOptions.length > 0 || 
+    selectedVendors.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -301,10 +324,28 @@ export default function ListingsPage() {
                   </div>
                 </div>
                 
+                {/* Vendor Filter */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Vendeurs</h3>
+                  <TagInput
+                    tags={selectedVendors}
+                    suggestions={vendors}
+                    onAdd={(vendorId) => {
+                      handleAddVendor(vendorId);
+                      handleFilterChange();
+                    }}
+                    onRemove={(vendorId) => {
+                      handleRemoveVendor(vendorId);
+                      handleFilterChange();
+                    }}
+                    placeholder="Rechercher un vendeur..."
+                  />
+                </div>
+                
                 {/* Options Filter */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Options</h3>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {ALL_OPTIONS.map(option => (
                       <div key={option} className="flex items-center">
                         <input
@@ -452,10 +493,28 @@ export default function ListingsPage() {
                     </div>
                   </div>
                   
+                  {/* Vendor Filter */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Vendeurs</h3>
+                    <TagInput
+                      tags={selectedVendors}
+                      suggestions={vendors}
+                      onAdd={(vendorId) => {
+                        handleAddVendor(vendorId);
+                        handleFilterChange();
+                      }}
+                      onRemove={(vendorId) => {
+                        handleRemoveVendor(vendorId);
+                        handleFilterChange();
+                      }}
+                      placeholder="Rechercher un vendeur..."
+                    />
+                  </div>
+                  
                   {/* Options Filter */}
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Options</h3>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
                       {ALL_OPTIONS.map(option => (
                         <div key={option} className="flex items-center">
                           <input
@@ -595,6 +654,8 @@ export default function ListingsPage() {
                     </button>
                   </span>
                 ))}
+                
+
               </div>
             )}
             
@@ -614,6 +675,8 @@ export default function ListingsPage() {
                     type={car.type}
                     options={car.options}
                     disponible={car.disponible}
+                    vendorId={car.vendorId}
+                    vendors={vendors}
                   />
                 ))}
               </div>
