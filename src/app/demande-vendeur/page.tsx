@@ -14,11 +14,18 @@ export default function DemandeVendeur() {
     description: ''
   })
 
-  const [files, setFiles] = useState({
+  interface FileWithName extends File {
+    name: string;
+  }
+
+  interface FilesState {
+    registreCommerce: FileWithName | null;
+    nif: FileWithName | null;
+  }
+
+  const [files, setFiles] = useState<FilesState>({
     registreCommerce: null,
-    nif: null,
-    nis: null,
-    permis: null
+    nif: null
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,10 +33,13 @@ export default function DemandeVendeur() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof FilesState) => {
     const file = e.target.files?.[0]
     if (file) {
-      setFiles(prev => ({ ...prev, [field]: file }))
+      setFiles(prev => ({
+        ...prev,
+        [field]: file as FileWithName
+      }))
     }
   }
 
@@ -226,50 +236,6 @@ export default function DemandeVendeur() {
                       <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600">
                         {files.nif ? files.nif.name : 'Cliquez pour uploader'}
-                      </p>
-                    </label>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    NIS (Numéro d'Identification Statistique) *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-500 transition-colors">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileChange(e, 'nis')}
-                      className="hidden"
-                      id="nis"
-                      required
-                    />
-                    <label htmlFor="nis" className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {files.nis ? files.nis.name : 'Cliquez pour uploader'}
-                      </p>
-                    </label>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Permis de conduire *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-500 transition-colors">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileChange(e, 'permis')}
-                      className="hidden"
-                      id="permis"
-                      required
-                    />
-                    <label htmlFor="permis" className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {files.permis ? files.permis.name : 'Cliquez pour uploader'}
                       </p>
                     </label>
                   </div>
