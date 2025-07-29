@@ -2,11 +2,13 @@
 
 import { X, User, Mail, Phone, Calendar, Car, FileText } from 'lucide-react'
 
+export type BookingStatus = 'en_attente' | 'approuvee' | 'refusee' | 'terminee';
+
 interface BookingDetailsModalProps {
   isOpen: boolean
   onClose: () => void
   booking: any
-  onStatusChange: (status: string) => void
+  onStatusChange: (status: BookingStatus) => void
 }
 
 export default function BookingDetailsModal({ 

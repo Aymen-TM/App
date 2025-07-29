@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import AddCarModal from '@/components/AddCarModal'
-import BookingDetailsModal from '@/components/BookingDetailsModal'
+import BookingDetailsModal, { BookingStatus } from '@/components/BookingDetailsModal'
 
 interface Booking {
   id: string;
@@ -15,7 +15,7 @@ interface Booking {
   dateDebut: string;
   dateFin: string;
   message: string;
-  statut: 'en_attente' | 'approuvee' | 'refusee' | 'terminee';
+  statut: BookingStatus;
 }
 import { Car, Users, Settings, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Tag, Fuel, Settings as SettingsIcon } from 'lucide-react'
 
@@ -215,7 +215,7 @@ export default function DashboardVendeur() {
     setIsBookingModalOpen(true)
   }
 
-  const handleStatusChange = (nouveauStatut: 'en_attente' | 'approuvee' | 'refusee' | 'terminee') => {
+  const handleStatusChange = (nouveauStatut: BookingStatus) => {
     if (selectedBooking) {
       changerStatutDemande(selectedBooking.id, nouveauStatut)
       setSelectedBooking(prev => ({
