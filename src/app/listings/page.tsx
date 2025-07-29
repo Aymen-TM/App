@@ -230,73 +230,92 @@ export default function ListingsPage() {
               
               <div className="space-y-6">
                 {/* Marque Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Marque</label>
-                  <input
-                    type="text"
-                    value={marque}
-                    onChange={(e) => setMarque(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                    placeholder="Ex: Renault"
-                  />
+                <div className="relative group">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Marque</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={marque}
+                      onChange={(e) => setMarque(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                      placeholder="Ex: Renault"
+                    />
+                  </div>
                 </div>
                 
                 {/* Modèle Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Modèle</label>
-                  <input
-                    type="text"
-                    value={modele}
-                    onChange={(e) => setModele(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                    placeholder="Ex: Clio 5"
-                  />
+                <div className="relative group">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Modèle</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={modele}
+                      onChange={(e) => setModele(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                      placeholder="Ex: Clio 5"
+                    />
+                  </div>
                 </div>
                 
                 {/* Location Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Wilaya</label>
-                  <select
-                    value={location}
-                    onChange={(e) => {
-                      setLocation(e.target.value);
-                      handleFilterChange();
-                    }}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                  >
-                    <option value="">Toutes les wilayas</option>
-                    {WILAYAS.map(wilaya => (
-                      <option key={wilaya} value={wilaya}>
-                        {wilaya}
-                      </option>
-                    ))}
-                  </select>
+                <div className="relative group">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Wilaya</label>
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <select
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        handleFilterChange();
+                      }}
+                      className="appearance-none w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                    >
+                      <option value="">Toutes les wilayas</option>
+                      {WILAYAS.map(wilaya => (
+                        <option key={wilaya} value={wilaya}>
+                          {wilaya}
+                        </option>
+                      ))}
+                    </select>
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
                 
                 {/* Year Range Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      value={yearMin}
-                      onChange={(e) => setYearMin(e.target.value)}
-                      onBlur={handleFilterChange}
-                      placeholder="Min"
-                      min="1900"
-                      max={new Date().getFullYear()}
-                      className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                    />
-                    <input
-                      type="number"
-                      value={yearMax}
-                      onChange={(e) => setYearMax(e.target.value)}
-                      onBlur={handleFilterChange}
-                      placeholder="Max"
-                      min="1900"
-                      max={new Date().getFullYear()}
-                      className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                    />
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Année</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative group">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">De</span>
+                      <input
+                        type="number"
+                        value={yearMin}
+                        onChange={(e) => setYearMin(e.target.value)}
+                        onBlur={handleFilterChange}
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        className="w-full pl-8 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">À</span>
+                      <input
+                        type="number"
+                        value={yearMax}
+                        onChange={(e) => setYearMax(e.target.value)}
+                        onBlur={handleFilterChange}
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        className="w-full pl-8 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                      />
+                    </div>
                   </div>
                 </div>
                 
@@ -397,75 +416,94 @@ export default function ListingsPage() {
                 
                 <div className="space-y-4">
                   {/* Marque Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Marque</label>
-                    <input
-                      type="text"
-                      value={marque}
-                      onChange={(e) => setMarque(e.target.value)}
-                      onBlur={handleFilterChange}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                      placeholder="Ex: Renault"
-                    />
+                  <div className="relative group">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Marque</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={marque}
+                        onChange={(e) => setMarque(e.target.value)}
+                        onBlur={handleFilterChange}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                        placeholder="Ex: Renault"
+                      />
+                    </div>
                   </div>
                   
                   {/* Modèle Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Modèle</label>
-                    <input
-                      type="text"
-                      value={modele}
-                      onChange={(e) => setModele(e.target.value)}
-                      onBlur={handleFilterChange}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                      placeholder="Ex: Clio 5"
-                    />
+                  <div className="relative group">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Modèle</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={modele}
+                        onChange={(e) => setModele(e.target.value)}
+                        onBlur={handleFilterChange}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                        placeholder="Ex: Clio 5"
+                      />
+                    </div>
                   </div>
                   
                   {/* Location Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Wilaya</label>
-                    <select
-                      value={location}
-                      onChange={(e) => {
-                        setLocation(e.target.value);
-                        handleFilterChange();
-                      }}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                    >
-                      <option value="">Toutes les wilayas</option>
-                      {WILAYAS.map(wilaya => (
-                        <option key={wilaya} value={wilaya}>
-                          {wilaya}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="relative group">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5 transition-all duration-200 group-focus-within:text-primary-600">Wilaya</label>
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <select
+                        value={location}
+                        onChange={(e) => {
+                          setLocation(e.target.value);
+                          handleFilterChange();
+                        }}
+                        className="appearance-none w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                      >
+                        <option value="">Toutes les wilayas</option>
+                        {WILAYAS.map(wilaya => (
+                          <option key={wilaya} value={wilaya}>
+                            {wilaya}
+                          </option>
+                        ))}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                   
                   {/* Year Range Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="number"
-                        value={yearMin}
-                        onChange={(e) => setYearMin(e.target.value)}
-                        onBlur={handleFilterChange}
-                        placeholder="Min"
-                        min="1900"
-                        max={new Date().getFullYear()}
-                        className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                      />
-                      <input
-                        type="number"
-                        value={yearMax}
-                        onChange={(e) => setYearMax(e.target.value)}
-                        onBlur={handleFilterChange}
-                        placeholder="Max"
-                        min="1900"
-                        max={new Date().getFullYear()}
-                        className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                      />
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Année</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="relative group">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">De</span>
+                        <input
+                          type="number"
+                          value={yearMin}
+                          onChange={(e) => setYearMin(e.target.value)}
+                          onBlur={handleFilterChange}
+                          min="1900"
+                          max={new Date().getFullYear()}
+                          className="w-full pl-12 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">À</span>
+                        <input
+                          type="number"
+                          value={yearMax}
+                          onChange={(e) => setYearMax(e.target.value)}
+                          onBlur={handleFilterChange}
+                          min="1900"
+                          max={new Date().getFullYear()}
+                          className="w-full pl-8 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm shadow-sm"
+                        />
+                      </div>
                     </div>
                   </div>
                   
