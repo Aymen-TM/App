@@ -147,11 +147,53 @@ export default function DashboardVendeur() {
   }
 
   const changerStatutDemande = (id: string, nouveauStatut: string) => {
-    setDemandes(prev => prev.map(demande => 
-      demande.id === id 
-        ? { ...demande, statut: nouveauStatut }
-        : demande
-    ))
+    setDemandes((prev: Array<{
+      id: string;
+      nom: string;
+      email: string;
+      telephone: string;
+      dateDemande: string;
+      voiture: string;
+      prix: number;
+      dateDebut: string;
+      dateFin: string;
+      message: string;
+      statut: string;
+    }>) => {
+      const updatedDemandes = prev.map(demande => {
+        if (demande.id === id) {
+          // If the request is being approved, update the car's availability
+          if (nouveauStatut === 'approuvee') {
+            // Find the car by name (this is a simple match, in a real app you'd use an ID)
+            setVoitures((prevVoitures: Array<{
+              id: string;
+              marque: string;
+              modele: string;
+              annee: number;
+              prix: number;
+              disponible: boolean;
+              image: string;
+              type: string;
+              carburant: string;
+              transmission: string;
+              places: number;
+              kilometrage: string;
+              description: string;
+              options: string[];
+            }>) => 
+              prevVoitures.map(voiture => 
+                `${voiture.marque} ${voiture.modele}` === demande.voiture
+                  ? { ...voiture, disponible: false }
+                  : voiture
+              )
+            );
+          }
+          return { ...demande, statut: nouveauStatut };
+        }
+        return demande;
+      });
+      return updatedDemandes;
+    });
   }
 
   const ouvrirModalDemande = (demande: any) => {
