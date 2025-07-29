@@ -3,6 +3,20 @@
 import { useState } from 'react'
 import AddCarModal from '@/components/AddCarModal'
 import BookingDetailsModal from '@/components/BookingDetailsModal'
+
+interface Booking {
+  id: string;
+  nom: string;
+  email: string;
+  telephone: string;
+  dateDemande: string;
+  voiture: string;
+  prix: number;
+  dateDebut: string;
+  dateFin: string;
+  message: string;
+  statut: 'en_attente' | 'approuvee' | 'refusee' | 'terminee';
+}
 import { Car, Users, Settings, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Tag, Fuel, Settings as SettingsIcon } from 'lucide-react'
 
 // Données de test améliorées
@@ -106,7 +120,7 @@ export default function DashboardVendeur() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCar, setEditingCar] = useState<any>(null)
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
-  const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
   const toggleDisponibilite = (id: string) => {
     setVoitures(prev => prev.map(voiture => 
@@ -201,10 +215,13 @@ export default function DashboardVendeur() {
     setIsBookingModalOpen(true)
   }
 
-  const handleStatusChange = (nouveauStatut: string) => {
+  const handleStatusChange = (nouveauStatut: 'en_attente' | 'approuvee' | 'refusee' | 'terminee') => {
     if (selectedBooking) {
       changerStatutDemande(selectedBooking.id, nouveauStatut)
-      setSelectedBooking(prev => ({ ...prev, statut: nouveauStatut }))
+      setSelectedBooking(prev => ({
+        ...prev,
+        statut: nouveauStatut
+      } as Booking))
     }
   }
 
