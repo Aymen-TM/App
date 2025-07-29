@@ -48,7 +48,7 @@ export default function DashboardVendeur() {
     return () => clearInterval(interval);
   }, []);
 
-  const toggleDisponibilite = (id: string) => {
+  const toggleDisponibilite = (id: number) => {
     setVoitures(prev => prev.map(voiture => 
       voiture.id === id 
         ? { ...voiture, disponible: !voiture.disponible }
@@ -56,7 +56,7 @@ export default function DashboardVendeur() {
     ))
   }
 
-  const supprimerVoiture = (id: string) => {
+  const supprimerVoiture = (id: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette voiture ?')) {
       setVoitures(prev => prev.filter(voiture => voiture.id !== id))
     }
@@ -351,7 +351,7 @@ export default function DashboardVendeur() {
                     
                     <div className="flex space-x-2 mt-4">
                       <button
-                        onClick={() => toggleDisponibilite(voiture.id.toString())}
+                        onClick={() => toggleDisponibilite(voiture.id)}
                         className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium ${
                           voiture.disponible
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
@@ -368,7 +368,7 @@ export default function DashboardVendeur() {
                         <Edit className="h-4 w-4" />
                       </button>
                       <button 
-                        onClick={() => supprimerVoiture(voiture.id.toString())}
+                        onClick={() => supprimerVoiture(voiture.id)}
                         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg"
                         title="Supprimer"
                       >
