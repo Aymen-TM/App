@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { MapPin, Calendar } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 
 import { Vendor } from '@/data/mockCars'
 
@@ -49,9 +50,49 @@ export default function VoitureCard({
     router.push(`/listings?${params.toString()}`)
   }
 
-  // Display up to 2 options with a +X more indicator if there are more
-  const visibleOptions = options?.slice(0, 2) || []
-  const remainingOptions = Math.max(0, (options?.length || 0) - 2)
+  // State for expanded tags
+  const [expanded, setExpanded] = useState(false)
+  
+  // Get current URL search params to check for active filters
+  const searchParams = useSearchParams()
+  const activeType = searchParams?.get('type')
+  const activeOptions = searchParams?.get('options')?.split(',') || []
+  
+  // Define tag type
+  type TagType = 'type' | 'option'
+  
+  interface Tag {
+    value: string
+    type: TagType
+  }
+  
+  // Separate active and inactive tags
+  const activeTags: Tag[] = []
+  const inactiveTags: Tag[] = []
+  
+  // Add type to active tags if it matches the filter
+  if (type) {
+    if (activeType === type) {
+      activeTags.push({ value: type, type: 'type' as const })
+    } else {
+      inactiveTags.push({ value: type, type: 'type' as const })
+    }
+  }
+  
+  // Add options to active or inactive tags
+  options?.forEach(option => {
+    if (activeOptions.includes(option)) {
+      activeTags.push({ value: option, type: 'option' as const })
+    } else {
+      inactiveTags.push({ value: option, type: 'option' as const })
+    }
+  })
+  
+  // Determine visible tags based on expanded state
+  const maxInitialTags = 3
+  const allTags = [...activeTags, ...inactiveTags]
+  const visibleTags = expanded ? allTags : allTags.slice(0, maxInitialTags)
+  const hasMoreTags = allTags.length > maxInitialTags
 
   return (
     <div className="card overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 h-full flex flex-col">
@@ -97,32 +138,46 @@ export default function VoitureCard({
           )}
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {type && (
-              <Link 
-                href={`/listings?type=${type}`}
-                className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full hover:bg-blue-100 transition-colors"
-                onClick={(e) => handleTagClick(e, 'type', type)}
-              >
-                {type}
-              </Link>
-            )}
-            {visibleOptions.map((option, index) => (
-              <Link 
-                key={index}
-                href={`/listings?options=${option}`}
-                className="px-3 py-1 bg-gray-50 text-gray-700 text-xs font-medium rounded-full hover:bg-gray-100 transition-colors truncate"
-                onClick={(e) => handleTagClick(e, 'option', option)}
-                title={option}
-              >
-                {option}
-              </Link>
-            ))}
-            {remainingOptions > 0 && (
-              <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full">
-                +{remainingOptions} plus
-              </span>
-            )}
+          <div className="space-y-2 mb-4">
+            <div className="flex flex-wrap gap-2">
+              {visibleTags.map((tag, index) => (
+                <Link 
+                  key={index}
+                  href={`/listings?${tag.type}=${encodeURIComponent(tag.value)}`}
+                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors truncate ${
+                    activeTags.some(t => t.value === tag.value && t.type === tag.type)
+                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                  onClick={(e) => handleTagClick(e, tag.type, tag.value)}
+                  title={tag.value}
+                >
+                  {tag.value}
+                </Link>
+              ))}
+              {hasMoreTags && !expanded && (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setExpanded(true)
+                  }}
+                  className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  +{allTags.length - maxInitialTags} plus
+                </button>
+              )}
+              {expanded && (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setExpanded(false)
+                  }}
+                  className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  Voir moins
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

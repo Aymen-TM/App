@@ -1,6 +1,6 @@
 {
-  "/listings/page": "app/listings/page.js",
   "/voiture/[id]/page": "app/voiture/[id]/page.js",
+  "/listings/page": "app/listings/page.js",
   "/page": "app/page.js",
   "/demande-vendeur/page": "app/demande-vendeur/page.js",
   "/dashboard-vendeur/page": "app/dashboard-vendeur/page.js"

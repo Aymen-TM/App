@@ -27,6 +27,8 @@ export default function ListingsPage() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showAllTypes, setShowAllTypes] = useState(false);
+  const [showAllOptions, setShowAllOptions] = useState(false);
   
   // Debounced values for search inputs
   const [debouncedMarque] = useDebounce(marque, 1000);
@@ -321,9 +323,22 @@ export default function ListingsPage() {
                 
                 {/* Car Types Filter */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Type de véhicule</h3>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium text-gray-700">Type de véhicule</h3>
+                    {selectedTypes.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setSelectedTypes([]);
+                          handleFilterChange();
+                        }}
+                        className="text-xs text-primary-600 hover:text-primary-800"
+                      >
+                        Tout effacer
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-2">
-                    {CAR_TYPES.map(type => (
+                    {CAR_TYPES.slice(0, showAllTypes ? CAR_TYPES.length : 5).map(type => (
                       <div key={type} className="flex items-center">
                         <input
                           id={`type-${type}`}
@@ -335,11 +350,23 @@ export default function ListingsPage() {
                           }}
                           className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
-                        <label htmlFor={`type-${type}`} className="ml-2 text-sm text-gray-700">
+                        <label 
+                          htmlFor={`type-${type}`} 
+                          className="ml-2 text-sm text-gray-700 flex-1 truncate"
+                          title={type}
+                        >
                           {type}
                         </label>
                       </div>
                     ))}
+                    {CAR_TYPES.length > 5 && (
+                      <button
+                        onClick={() => setShowAllTypes(!showAllTypes)}
+                        className="text-xs text-primary-600 hover:text-primary-800 mt-1 block w-full text-left"
+                      >
+                        {showAllTypes ? 'Voir moins' : `Voir plus (${CAR_TYPES.length - 5} autres)`}
+                      </button>
+                    )}
                   </div>
                 </div>
                 
@@ -363,9 +390,22 @@ export default function ListingsPage() {
                 
                 {/* Options Filter */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Options</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {ALL_OPTIONS.map(option => (
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium text-gray-700">Options</h3>
+                    {selectedOptions.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setSelectedOptions([]);
+                          handleFilterChange();
+                        }}
+                        className="text-xs text-primary-600 hover:text-primary-800"
+                      >
+                        Tout effacer
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {ALL_OPTIONS.slice(0, showAllOptions ? ALL_OPTIONS.length : 5).map(option => (
                       <div key={option} className="flex items-center">
                         <input
                           id={`option-${option}`}
@@ -377,11 +417,23 @@ export default function ListingsPage() {
                           }}
                           className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
-                        <label htmlFor={`option-${option}`} className="ml-2 text-sm text-gray-700">
+                        <label 
+                          htmlFor={`option-${option}`} 
+                          className="ml-2 text-sm text-gray-700 flex-1 truncate"
+                          title={option}
+                        >
                           {option}
                         </label>
                       </div>
                     ))}
+                    {ALL_OPTIONS.length > 5 && (
+                      <button
+                        onClick={() => setShowAllOptions(!showAllOptions)}
+                        className="text-xs text-primary-600 hover:text-primary-800 mt-1 block w-full text-left"
+                      >
+                        {showAllOptions ? 'Voir moins' : `Voir plus (${ALL_OPTIONS.length - 5} autres)`}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
