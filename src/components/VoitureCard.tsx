@@ -5,7 +5,7 @@ import { MapPin, Calendar } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
-import { Vendor } from '@/data/mockCars'
+import { Vendor } from '@/types';
 
 interface VoitureCardProps {
   id: string
@@ -20,6 +20,10 @@ interface VoitureCardProps {
   options?: string[]
   vendorId?: string
   vendors?: Vendor[]
+  carburant?: string
+  transmission?: string
+  places?: number
+  puissance?: string
 }
 
 export default function VoitureCard({
@@ -31,18 +35,24 @@ export default function VoitureCard({
   ville,
   image,
   disponible,
-
   type,
   options = [],
   vendorId,
-  vendors = []
+  vendors = [],
+  carburant = '',
+  transmission = '',
+  places = 0,
+  puissance = ''
 }: VoitureCardProps) {
   const router = useRouter()
 
   // Handle tag click
-  const handleTagClick = (e: React.MouseEvent, type: 'type' | 'option', value: string) => {
+  const handleTagClick = (e: React.MouseEvent, type: 'type' | 'option' | 'spec', value: string) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    // Only allow filtering by type and option tags, not spec tags
+    if (type === 'spec') return
     
     const params = new URLSearchParams()
     params.set(type === 'type' ? 'type' : 'options', value)
@@ -59,11 +69,12 @@ export default function VoitureCard({
   const activeOptions = searchParams?.get('options')?.split(',') || []
   
   // Define tag type
-  type TagType = 'type' | 'option'
+  type TagType = 'type' | 'option' | 'spec'
   
   interface Tag {
     value: string
     type: TagType
+    label?: string
   }
   
   // Separate active and inactive tags
@@ -88,11 +99,29 @@ export default function VoitureCard({
     }
   })
   
+  // Add technical specifications as tags
+  const technicalSpecs = [
+    { value: carburant, label: carburant, type: 'spec' as const },
+    { value: transmission, label: transmission, type: 'spec' as const },
+    { value: `places-${places}`, label: `${places} ${places === 1 ? 'place' : 'places'}`, type: 'spec' as const },
+    { value: puissance, label: puissance, type: 'spec' as const }
+  ].filter(spec => spec.value) as Tag[]
+  
+  // Add technical specs to inactive tags (they're not filterable)
+  technicalSpecs.forEach(spec => {
+    inactiveTags.push(spec)
+  })
+  
   // Determine visible tags based on expanded state
+  // Show all active tags + some inactive ones
   const maxInitialTags = 3
   const allTags = [...activeTags, ...inactiveTags]
-  const visibleTags = expanded ? allTags : allTags.slice(0, maxInitialTags)
-  const hasMoreTags = allTags.length > maxInitialTags
+  const visibleActiveTags = activeTags
+  const visibleInactiveTags = expanded 
+    ? inactiveTags 
+    : inactiveTags.slice(0, Math.max(0, maxInitialTags - activeTags.length))
+  const visibleTags = [...visibleActiveTags, ...visibleInactiveTags]
+  const hasMoreTags = allTags.length > visibleActiveTags.length + visibleInactiveTags.length
 
   return (
     <div className="card overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 h-full flex flex-col">
@@ -140,21 +169,32 @@ export default function VoitureCard({
           {/* Tags */}
           <div className="space-y-2 mb-4">
             <div className="flex flex-wrap gap-2">
-              {visibleTags.map((tag, index) => (
-                <Link 
-                  key={index}
-                  href={`/listings?${tag.type}=${encodeURIComponent(tag.value)}`}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors truncate ${
-                    activeTags.some(t => t.value === tag.value && t.type === tag.type)
-                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={(e) => handleTagClick(e, tag.type, tag.value)}
-                  title={tag.value}
-                >
-                  {tag.value}
-                </Link>
-              ))}
+              {visibleTags.map((tag, index) => {
+                const isActive = activeTags.some(t => t.value === tag.value && t.type === tag.type)
+                const isSpec = tag.type === 'spec'
+                
+                return (
+                  <button
+                    key={`${tag.type}-${tag.value}-${index}`}
+                    onClick={(e) => handleTagClick(e, tag.type, tag.value)}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      isActive
+                        ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        : isSpec
+                          ? 'bg-green-50 text-green-800 border border-green-100'
+                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                    }`}
+                    title={isSpec ? 'Spécification technique' : ''}
+                  >
+                    {tag.label || tag.value}
+                    {isSpec && (
+                      <svg className="ml-1 w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    )}
+                  </button>
+                )
+              })}
               {hasMoreTags && !expanded && (
                 <button 
                   onClick={(e) => {

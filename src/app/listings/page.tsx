@@ -6,17 +6,74 @@ import { Search, X, Filter, Loader2 } from 'lucide-react';
 import TagInput from '@/components/TagInput';
 import { useDebounce } from 'use-debounce';
 import VoitureCard from '@/components/VoitureCard';
-import { mockCars, Car, vendors } from '@/data/mockCars';
-
-// List of available car types and options for filters
-const CAR_TYPES = [...new Set(mockCars.map(car => car.type))].sort();
-const ALL_OPTIONS = Array.from(new Set(mockCars.flatMap(car => car.options))).sort();
-const WILAYAS = [...new Set(mockCars.map(car => car.location))].sort();
+import { Cars } from '@/types';
+import { fetchCars } from '@/lib/api';
 
 export default function ListingsPage() {
+  // All hooks must be called here, inside the function
+  const [cars, setCars] = useState<Cars[]>([]);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchCars();
+        setCars(data);
+      } catch (e) {
+        setCars([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // List of available car types and options for filters
+  const CAR_TYPES = [...new Set(cars.map((car: Cars) => car.type))].sort();
+  const ALL_OPTIONS = Array.from(new Set(cars.flatMap((car: Cars) => car.options))).sort();
+  const WILAYAS = [...new Set(cars.map((car: Cars) => car.location))].sort();
+
+  // Categorize options
+  const TECHNICAL_FEATURES = [
+    '4x4',
+    'ABS',
+    'Airbags',
+    'Direction assistée',
+    'ESP',
+    'Freinage d\'urgence autonome',
+    'Système de navigation'
+  ];
+
+  const EQUIPMENT_FEATURES = [
+    'Alarme',
+    'Bluetooth',
+    'Caméra de recul',
+    'Climatisation',
+    'Démarrage sans clé',
+    'Feux LED',
+    'GPS',
+    'Jantes alliage',
+    'Radar de recul',
+    'Radio/CD',
+    'Rétroviseurs électriques',
+    'Sièges cuir',
+    'Toit ouvrant',
+    'Vitres électriques'
+  ];
+
+  // Filter options to only include those present in the data
+  const ALL_TECHNICAL_FEATURES = TECHNICAL_FEATURES.filter(feature => 
+    ALL_OPTIONS.some(option => option.toLowerCase() === feature.toLowerCase())
+  );
+
+  const ALL_EQUIPMENT_FEATURES = EQUIPMENT_FEATURES.filter(feature => 
+    ALL_OPTIONS.some(option => option.toLowerCase() === feature.toLowerCase())
+  );
+
   // State for filters
   const [marque, setMarque] = useState('');
   const [modele, setModele] = useState('');
@@ -28,13 +85,19 @@ export default function ListingsPage() {
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showAllTypes, setShowAllTypes] = useState(false);
-  const [showAllOptions, setShowAllOptions] = useState(false);
+  const [showAllTechnical, setShowAllTechnical] = useState(false);
+  const [showAllEquipment, setShowAllEquipment] = useState(false);
+  
+  // Technical specifications filters
+  const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
+  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const [mileageRange, setMileageRange] = useState<[number, number]>([0, 200000]);
   
   // Debounced values for search inputs
   const [debouncedMarque] = useDebounce(marque, 1000);
   const [debouncedModele] = useDebounce(modele, 1000);
   const [isFiltering, setIsFiltering] = useState(false);
-  const pathname = usePathname();
   
   // Apply filters from URL on component mount
   useEffect(() => {
@@ -82,7 +145,7 @@ export default function ListingsPage() {
   // Filter cars based on selected filters
   const filteredCars = useMemo(() => {
     setIsFiltering(true);
-    const result = mockCars.filter((car: Car) => {
+    const result = cars.filter((car: Cars) => {
       try {
         // Filter by marque (case insensitive)
         if (marque && typeof marque === 'string' && 
@@ -132,6 +195,28 @@ export default function ListingsPage() {
           return false;
         }
         
+        // Filter by fuel type
+        if (selectedFuels.length > 0 && car.carburant && !selectedFuels.includes(car.carburant)) {
+          return false;
+        }
+        
+        // Filter by transmission
+        if (selectedTransmissions.length > 0 && car.transmission && 
+            !selectedTransmissions.includes(car.transmission)) {
+          return false;
+        }
+        
+        // Filter by number of seats
+        if (selectedSeats.length > 0 && car.places) {
+          // For 8+ seats, check if places is 8 or more
+          const hasMatchingSeats = selectedSeats.some(seats => 
+            seats === 8 ? car.places >= 8 : car.places === seats
+          );
+          if (!hasMatchingSeats) {
+            return false;
+          }
+        }
+        
         return true;
       } catch (error) {
         console.error('Error filtering cars:', error);
@@ -142,7 +227,7 @@ export default function ListingsPage() {
     // Small delay to show loading state for better UX
     setTimeout(() => setIsFiltering(false), 100);
     return result;
-  }, [marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions, selectedVendors]);
+  }, [cars, marque, modele, location, yearMin, yearMax, selectedTypes, selectedOptions, selectedVendors, selectedFuels, selectedTransmissions, selectedSeats, mileageRange]);
   
   // Handle filter changes (no longer needed with debounced updates)
   const handleFilterChange = useCallback(() => {
@@ -321,8 +406,182 @@ export default function ListingsPage() {
                   </div>
                 </div>
                 
-                {/* Car Types Filter */}
-                <div>
+                {/* Technical Specifications Section */}
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-base font-medium text-gray-900 mb-4">Caractéristiques techniques</h3>
+                  
+                  {/* Fuel Type Filter */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-medium text-gray-700">Carburant</h4>
+                      {selectedFuels.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedFuels([]);
+                            handleFilterChange();
+                          }}
+                          className="text-xs text-primary-600 hover:text-primary-800"
+                        >
+                          Tout effacer
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {['Essence', 'Diesel', 'Hybride', 'Electrique'].map((fuel) => (
+                        <div key={fuel} className="flex items-center">
+                          <input
+                            id={`fuel-${fuel}`}
+                            type="checkbox"
+                            checked={selectedFuels.includes(fuel)}
+                            onChange={() => {
+                              setSelectedFuels(prev => 
+                                prev.includes(fuel)
+                                  ? prev.filter(f => f !== fuel)
+                                  : [...prev, fuel]
+                              );
+                              handleFilterChange();
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <label htmlFor={`fuel-${fuel}`} className="ml-2 text-sm text-gray-700">
+                            {fuel}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Transmission Filter */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-medium text-gray-700">Transmission</h4>
+                      {selectedTransmissions.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedTransmissions([]);
+                            handleFilterChange();
+                          }}
+                          className="text-xs text-primary-600 hover:text-primary-800"
+                        >
+                          Tout effacer
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {['Manuelle', 'Automatique'].map((transmission) => (
+                        <div key={transmission} className="flex items-center">
+                          <input
+                            id={`transmission-${transmission}`}
+                            type="checkbox"
+                            checked={selectedTransmissions.includes(transmission)}
+                            onChange={() => {
+                              setSelectedTransmissions(prev => 
+                                prev.includes(transmission)
+                                  ? prev.filter(t => t !== transmission)
+                                  : [...prev, transmission]
+                              );
+                              handleFilterChange();
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <label htmlFor={`transmission-${transmission}`} className="ml-2 text-sm text-gray-700">
+                            {transmission}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Number of Seats Filter */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-medium text-gray-700">Nombre de places</h4>
+                      {selectedSeats.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedSeats([]);
+                            handleFilterChange();
+                          }}
+                          className="text-xs text-primary-600 hover:text-primary-800"
+                        >
+                          Tout effacer
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[2, 4, 5, 7, 8].map((seats) => (
+                        <div key={seats} className="flex items-center">
+                          <input
+                            id={`seats-${seats}`}
+                            type="checkbox"
+                            checked={selectedSeats.includes(seats)}
+                            onChange={() => {
+                              setSelectedSeats(prev => 
+                                prev.includes(seats)
+                                  ? prev.filter(s => s !== seats)
+                                  : [...prev, seats]
+                              );
+                              handleFilterChange();
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <label htmlFor={`seats-${seats}`} className="ml-2 text-sm text-gray-700">
+                            {seats} {seats === 8 ? '+ places' : 'places'}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Mileage Range Filter */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Kilométrage (km)</h4>
+                    <div className="px-2">
+                      <div className="relative h-1 bg-gray-200 rounded-full mb-6">
+                        <div 
+                          className="absolute h-full bg-primary-600 rounded-full"
+                          style={{ 
+                            left: `${(mileageRange[0] / 200000) * 100}%`, 
+                            right: `${100 - (mileageRange[1] / 200000) * 100}%` 
+                          }}
+                        ></div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="200000"
+                          step="1000"
+                          value={mileageRange[0]}
+                          onChange={(e) => {
+                            const value = Math.min(Number(e.target.value), mileageRange[1] - 1000);
+                            setMileageRange([value, mileageRange[1]]);
+                            handleFilterChange();
+                          }}
+                          className="absolute w-full h-1 opacity-0 cursor-pointer"
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="200000"
+                          step="1000"
+                          value={mileageRange[1]}
+                          onChange={(e) => {
+                            const value = Math.max(Number(e.target.value), mileageRange[0] + 1000);
+                            setMileageRange([mileageRange[0], value]);
+                            handleFilterChange();
+                          }}
+                          className="absolute w-full h-1 opacity-0 cursor-pointer"
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{mileageRange[0].toLocaleString()} km</span>
+                        <span>{mileageRange[1].toLocaleString()} km</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Vehicle Type Filter */}
+                <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-sm font-medium text-gray-700">Type de véhicule</h3>
                     {selectedTypes.length > 0 && (
@@ -375,7 +634,7 @@ export default function ListingsPage() {
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Vendeurs</h3>
                   <TagInput
                     tags={selectedVendors}
-                    suggestions={vendors}
+                    suggestions={[]} // Removed vendors prop
                     onAdd={(vendorId) => {
                       handleAddVendor(vendorId);
                       handleFilterChange();
@@ -388,14 +647,15 @@ export default function ListingsPage() {
                   />
                 </div>
                 
-                {/* Options Filter */}
+                {/* Technical Features Filter */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-sm font-medium text-gray-700">Options</h3>
-                    {selectedOptions.length > 0 && (
+                    <h3 className="text-sm font-medium text-gray-700">Caractéristiques techniques</h3>
+                    {selectedOptions.some(opt => ALL_TECHNICAL_FEATURES.includes(opt)) && (
                       <button
                         onClick={() => {
-                          setSelectedOptions([]);
+                          const newSelected = selectedOptions.filter(opt => !ALL_TECHNICAL_FEATURES.includes(opt));
+                          setSelectedOptions(newSelected);
                           handleFilterChange();
                         }}
                         className="text-xs text-primary-600 hover:text-primary-800"
@@ -405,10 +665,10 @@ export default function ListingsPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    {ALL_OPTIONS.slice(0, showAllOptions ? ALL_OPTIONS.length : 5).map(option => (
+                    {ALL_TECHNICAL_FEATURES.slice(0, showAllTechnical ? ALL_TECHNICAL_FEATURES.length : 5).map(option => (
                       <div key={option} className="flex items-center">
                         <input
-                          id={`option-${option}`}
+                          id={`tech-${option}`}
                           type="checkbox"
                           checked={selectedOptions.includes(option)}
                           onChange={() => {
@@ -418,7 +678,7 @@ export default function ListingsPage() {
                           className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <label 
-                          htmlFor={`option-${option}`} 
+                          htmlFor={`tech-${option}`}
                           className="ml-2 text-sm text-gray-700 flex-1 truncate"
                           title={option}
                         >
@@ -426,12 +686,62 @@ export default function ListingsPage() {
                         </label>
                       </div>
                     ))}
-                    {ALL_OPTIONS.length > 5 && (
+                    {ALL_TECHNICAL_FEATURES.length > 5 && (
                       <button
-                        onClick={() => setShowAllOptions(!showAllOptions)}
+                        onClick={() => setShowAllTechnical(!showAllTechnical)}
                         className="text-xs text-primary-600 hover:text-primary-800 mt-1 block w-full text-left"
                       >
-                        {showAllOptions ? 'Voir moins' : `Voir plus (${ALL_OPTIONS.length - 5} autres)`}
+                        {showAllTechnical ? 'Voir moins' : `Voir plus (${ALL_TECHNICAL_FEATURES.length - 5} autres)`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Equipment Features Filter */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium text-gray-700">Options et équipements</h3>
+                    {selectedOptions.some(opt => ALL_EQUIPMENT_FEATURES.includes(opt)) && (
+                      <button
+                        onClick={() => {
+                          const newSelected = selectedOptions.filter(opt => !ALL_EQUIPMENT_FEATURES.includes(opt));
+                          setSelectedOptions(newSelected);
+                          handleFilterChange();
+                        }}
+                        className="text-xs text-primary-600 hover:text-primary-800"
+                      >
+                        Tout effacer
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {ALL_EQUIPMENT_FEATURES.slice(0, showAllEquipment ? ALL_EQUIPMENT_FEATURES.length : 5).map(option => (
+                      <div key={option} className="flex items-center">
+                        <input
+                          id={`equip-${option}`}
+                          type="checkbox"
+                          checked={selectedOptions.includes(option)}
+                          onChange={() => {
+                            toggleOption(option);
+                            handleFilterChange();
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <label 
+                          htmlFor={`equip-${option}`}
+                          className="ml-2 text-sm text-gray-700 flex-1 truncate"
+                          title={option}
+                        >
+                          {option}
+                        </label>
+                      </div>
+                    ))}
+                    {ALL_EQUIPMENT_FEATURES.length > 5 && (
+                      <button
+                        onClick={() => setShowAllEquipment(!showAllEquipment)}
+                        className="text-xs text-primary-600 hover:text-primary-800 mt-1 block w-full text-left"
+                      >
+                        {showAllEquipment ? 'Voir moins' : `Voir plus (${ALL_EQUIPMENT_FEATURES.length - 5} autres)`}
                       </button>
                     )}
                   </div>
@@ -588,7 +898,7 @@ export default function ListingsPage() {
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Vendeurs</h3>
                     <TagInput
                       tags={selectedVendors}
-                      suggestions={vendors}
+                      suggestions={[]} // Removed vendors prop
                       onAdd={(vendorId) => {
                         handleAddVendor(vendorId);
                         handleFilterChange();
@@ -766,7 +1076,7 @@ export default function ListingsPage() {
                     options={car.options}
                     disponible={car.disponible}
                     vendorId={car.vendorId}
-                    vendors={vendors}
+                    vendors={[]} // Removed vendors prop
                   />
                 ))}
               </div>

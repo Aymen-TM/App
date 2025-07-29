@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AddCarModal from '@/components/AddCarModal'
 import BookingDetailsModal, { BookingStatus } from '@/components/BookingDetailsModal'
+import { Cars } from '@/types';
+import { fetchCars, fetchBookings } from '@/lib/api';
 
 interface Booking {
   id: string;
@@ -17,110 +19,34 @@ interface Booking {
   message: string;
   statut: BookingStatus;
 }
-import { Car, Users, Settings, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Tag, Fuel, Settings as SettingsIcon } from 'lucide-react'
-
-// Données de test améliorées
-const voituresTest = [
-  {
-    id: '1',
-    marque: 'Renault',
-    modele: 'Clio',
-    annee: 2020,
-    prix: 2500,
-    disponible: true,
-    image: '/placeholder-car.jpg',
-    type: 'citadine',
-    carburant: 'essence',
-    transmission: 'manuelle',
-    places: 5,
-    kilometrage: '45000',
-    description: 'Voiture économique et fiable, parfaite pour la ville',
-    options: ['climatisation', 'gps', 'bluetooth', 'camera_recul', 'abs']
-  },
-  {
-    id: '2',
-    marque: 'Peugeot',
-    modele: '208',
-    annee: 2021,
-    prix: 2800,
-    disponible: false,
-    image: '/placeholder-car.jpg',
-    type: 'citadine',
-    carburant: 'essence',
-    transmission: 'automatique',
-    places: 5,
-    kilometrage: '32000',
-    description: 'Voiture moderne avec toutes les options',
-    options: ['climatisation', 'gps', 'bluetooth', 'camera_recul', 'radar_recul', 'sieges_cuir']
-  },
-  {
-    id: '3',
-    marque: 'Dacia',
-    modele: 'Logan',
-    annee: 2019,
-    prix: 2000,
-    disponible: true,
-    image: '/placeholder-car.jpg',
-    type: 'familiale',
-    carburant: 'diesel',
-    transmission: 'manuelle',
-    places: 5,
-    kilometrage: '78000',
-    description: 'Voiture spacieuse et économique',
-    options: ['climatisation', 'radio', 'abs', 'esp']
-  }
-]
-
-const demandesTest = [
-  {
-    id: '1',
-    nom: 'Ahmed Benali',
-    email: 'ahmed@email.com',
-    telephone: '+213 123 456 789',
-    dateDemande: '2024-01-15',
-    voiture: 'Renault Clio',
-    prix: 2500,
-    dateDebut: '2024-01-20',
-    dateFin: '2024-01-25',
-    message: 'Bonjour, je souhaite louer cette voiture pour un voyage d\'affaires. J\'ai un permis de conduire valide et je peux fournir tous les documents nécessaires.',
-    statut: 'en_attente'
-  },
-  {
-    id: '2',
-    nom: 'Fatima Zohra',
-    email: 'fatima@email.com',
-    telephone: '+213 987 654 321',
-    dateDemande: '2024-01-14',
-    voiture: 'Peugeot 208',
-    prix: 2800,
-    dateDebut: '2024-01-18',
-    dateFin: '2024-01-22',
-    message: 'Salut ! J\'ai besoin d\'une voiture pour aller à Oran ce weekend. Cette voiture me semble parfaite.',
-    statut: 'approuvee'
-  },
-  {
-    id: '3',
-    nom: 'Karim Boudiaf',
-    email: 'karim@email.com',
-    telephone: '+213 555 123 456',
-    dateDemande: '2024-01-13',
-    voiture: 'Dacia Logan',
-    prix: 2000,
-    dateDebut: '2024-01-25',
-    dateFin: '2024-01-30',
-    message: 'Je recherche une voiture familiale pour des vacances. Cette voiture correspond parfaitement à mes besoins.',
-    statut: 'refusee'
-  }
-]
+import { Users, Settings, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Tag, Car, Fuel, Settings as SettingsIcon } from 'lucide-react'
 
 export default function DashboardVendeur() {
   const [activeTab, setActiveTab] = useState('voitures')
-  const [voitures, setVoitures] = useState(voituresTest)
-  const [demandes, setDemandes] = useState(demandesTest)
+  const [voitures, setVoitures] = useState<Cars[]>([])
+  const [demandes, setDemandes] = useState<any[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingCar, setEditingCar] = useState<any>(null)
+  const [editingCar, setEditingCar] = useState<Cars | null>(null)
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const fetchedCars = await fetchCars();
+        setVoitures(fetchedCars);
+
+        const fetchedBookings = await fetchBookings();
+        setDemandes(fetchedBookings);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleDisponibilite = (id: string) => {
     setVoitures(prev => prev.map(voiture => 
@@ -141,12 +67,12 @@ export default function DashboardVendeur() {
     setIsModalOpen(true)
   }
 
-  const ouvrirModalEdition = (voiture: any) => {
+  const ouvrirModalEdition = (voiture: Cars) => {
     setEditingCar(voiture)
     setIsModalOpen(true)
   }
 
-  const handleCarSubmit = (carData: any) => {
+  const handleCarSubmit = (carData: Cars) => {
     if (editingCar) {
       // Modification
       setVoitures(prev => prev.map(voiture => 
@@ -179,22 +105,7 @@ export default function DashboardVendeur() {
           // If the request is being approved, update the car's availability
           if (nouveauStatut === 'approuvee') {
             // Find the car by name (this is a simple match, in a real app you'd use an ID)
-            setVoitures((prevVoitures: Array<{
-              id: string;
-              marque: string;
-              modele: string;
-              annee: number;
-              prix: number;
-              disponible: boolean;
-              image: string;
-              type: string;
-              carburant: string;
-              transmission: string;
-              places: number;
-              kilometrage: string;
-              description: string;
-              options: string[];
-            }>) => 
+            setVoitures((prevVoitures: Cars[]) => 
               prevVoitures.map(voiture => 
                 `${voiture.marque} ${voiture.modele}` === demande.voiture
                   ? { ...voiture, disponible: false }
@@ -281,7 +192,7 @@ export default function DashboardVendeur() {
           <div className="card p-6">
             <div className="flex items-center">
               <div className="bg-primary-100 p-3 rounded-lg">
-                <Car className="h-6 w-6 text-primary-600" />
+              <Car className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Voitures</p>
@@ -361,79 +272,86 @@ export default function DashboardVendeur() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {voitures.map((voiture) => (
-                <div key={voiture.id} className="card overflow-hidden">
-                  <div className="relative h-48 bg-gray-200">
+                <div key={voiture.id} className="card overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 h-full flex flex-col">
+                  {/* Image */}
+                  <div className="relative h-52 w-full overflow-hidden">
                     <img
-                      src={voiture.image}
+                      src={voiture.image || '/placeholder-car.jpg'}
                       alt={`${voiture.marque} ${voiture.modele}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     />
                     {!voiture.disponible && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <span className="text-white font-semibold">Indisponible</span>
+                      <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
+                        <span className="text-white font-semibold bg-red-600 px-3 py-1.5 rounded-md text-sm">Indisponible</span>
                       </div>
                     )}
-                    <div className="absolute top-2 left-2">
-                      <span className="bg-primary-600 text-white text-xs px-2 py-1 rounded-full">
-                        {getTypeLabel(voiture.type)}
-                      </span>
-                    </div>
                   </div>
-                  
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {voiture.marque} {voiture.modele}
-                        </h3>
-                        <p className="text-gray-600">{voiture.annee}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-primary-600">
-                          {voiture.prix} DA
-                        </p>
-                        <p className="text-xs text-gray-500">/jour</p>
-                      </div>
-                    </div>
 
-                    {/* Caractéristiques */}
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Fuel className="h-4 w-4" />
-                        <span className="capitalize">{voiture.carburant}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <SettingsIcon className="h-4 w-4" />
-                        <span className="capitalize">{voiture.transmission}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4" />
-                        <span>{voiture.places} places</span>
-                      </div>
-                    </div>
-
-                    {/* Options principales */}
-                    {voiture.options && voiture.options.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-1">Options principales :</p>
-                        <div className="flex flex-wrap gap-1">
-                          {voiture.options.slice(0, 3).map((option: string) => (
-                            <span key={option} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                              {getOptionLabel(option)}
-                            </span>
-                          ))}
-                          {voiture.options.length > 3 && (
-                            <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                              +{voiture.options.length - 3} autres
-                            </span>
-                          )}
+                  {/* Content */}
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">
+                            {voiture.marque} {voiture.modele}
+                          </h3>
+                          <p className="text-gray-600 text-sm">{voiture.annee}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-primary-600">
+                            {voiture.prix} DA
+                          </p>
+                          <p className="text-xs text-gray-500">/jour</p>
                         </div>
                       </div>
-                    )}
+
+                      {/* Caractéristiques */}
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                        {voiture.carburant && (
+                          <div className="flex items-center space-x-1">
+                            <Fuel className="h-4 w-4 text-gray-500" />
+                            <span className="capitalize">{voiture.carburant}</span>
+                          </div>
+                        )}
+                        {voiture.transmission && (
+                          <div className="flex items-center space-x-1">
+                            <SettingsIcon className="h-4 w-4 text-gray-500" />
+                            <span className="capitalize">{voiture.transmission}</span>
+                          </div>
+                        )}
+                        {voiture.places > 0 && (
+                          <div className="flex items-center space-x-1">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            <span>{voiture.places} {voiture.places === 1 ? 'place' : 'places'}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tags */}
+                      {voiture.options && voiture.options.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          <div className="flex flex-wrap gap-2">
+                            {voiture.options.slice(0, 3).map((option: string, index: number) => (
+                              <span 
+                                key={`${option}-${index}`}
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                {getOptionLabel(option)}
+                              </span>
+                            ))}
+                            {voiture.options.length > 3 && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                +{voiture.options.length - 3} autres
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 mt-4">
                       <button
-                        onClick={() => toggleDisponibilite(voiture.id)}
+                        onClick={() => toggleDisponibilite(voiture.id.toString())}
                         className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium ${
                           voiture.disponible
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
@@ -445,12 +363,14 @@ export default function DashboardVendeur() {
                       <button 
                         onClick={() => ouvrirModalEdition(voiture)}
                         className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg"
+                        title="Modifier"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button 
-                        onClick={() => supprimerVoiture(voiture.id)}
+                        onClick={() => supprimerVoiture(voiture.id.toString())}
                         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg"
+                        title="Supprimer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

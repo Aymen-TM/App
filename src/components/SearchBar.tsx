@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, MapPin, Car, ChevronDown, Filter } from 'lucide-react'
 import TagInput from './TagInput'
-import { vendors } from '@/data/mockCars'
 
 interface SearchFilters {
   location?: string
@@ -226,7 +225,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 </label>
                 <TagInput
                   tags={selectedVendors}
-                  suggestions={vendors}
+                  suggestions={[]} // Removed vendors import, so pass an empty array for now
                   onAdd={(vendorId) => setSelectedVendors(prev => 
                     prev.includes(vendorId) ? prev : [...prev, vendorId]
                   )}

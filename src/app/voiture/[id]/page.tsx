@@ -3,15 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { MapPin, Phone, Mail, Car as CarIcon, Users, Fuel, Settings } from 'lucide-react'
-import { mockCars, Car } from '@/data/mockCars'
-
-// Vendeur par défaut pour les démos
-const defaultSeller = {
-  nom: 'Auto Premium Alger',
-  telephone: '+213 123 456 789',
-  email: 'contact@autopremium.dz',
-
-}
+import { Cars } from '@/types';
+import { fetchCarById } from '@/lib/api';
 
 export default function VoitureDetail() {
   // Hooks at the top level
@@ -19,7 +12,7 @@ export default function VoitureDetail() {
   const params = useParams()
   const voitureId = params.id as string
   
-  const [voiture, setVoiture] = useState<Car | null>(null)
+  const [voiture, setVoiture] = useState<Cars | null>(null)
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     nom: '',
@@ -32,12 +25,20 @@ export default function VoitureDetail() {
   
   // Fetch car data based on ID
   useEffect(() => {
-    const foundCar = mockCars.find(car => car.id.toString() === voitureId)
-    if (foundCar) {
-      setVoiture(foundCar)
-    }
-    setLoading(false)
-  }, [voitureId])
+    const fetchVoiture = async () => {
+      try {
+        const fetchedVoiture = await fetchCarById(voitureId);
+        setVoiture(fetchedVoiture);
+      } catch (error) {
+        console.error("Error fetching voiture:", error);
+        setVoiture(null); // Ensure voiture is null on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVoiture();
+  }, [voitureId]);
   
   // Redirect to 404 if car not found
   useEffect(() => {
@@ -229,19 +230,15 @@ export default function VoitureDetail() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">À propos du vendeur</h3>
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-semibold text-gray-900">{defaultSeller.nom}</h4>
+                  <h4 className="font-semibold text-gray-900">Inconnu</h4>
 
                   <div className="flex items-center mt-2 text-sm text-gray-600">
                     <Phone className="h-4 w-4 mr-1" />
-                    <a href={`tel:${defaultSeller.telephone.replace(/\s/g, '')}`} className="hover:text-primary-600">
-                      {defaultSeller.telephone}
-                    </a>
+                    <span>Non spécifié</span>
                   </div>
                   <div className="flex items-center mt-1 text-sm text-gray-600">
                     <Mail className="h-4 w-4 mr-1" />
-                    <a href={`mailto:${defaultSeller.email}`} className="hover:text-primary-600">
-                      {defaultSeller.email}
-                    </a>
+                    <span>Non spécifié</span>
                   </div>
                 </div>
                 <button className="btn-secondary">
