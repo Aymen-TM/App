@@ -58,9 +58,6 @@ export default function Home() {
             {/* Vendor 1 */}
             <VendorCard
               name="Auto Premium"
-              rating={4.9}
-              reviewCount={128}
-              yearsActive={8}
               imageUrl="/vendors/auto-premium.jpg"
               verified={true}
               speciality="Voitures de luxe et premium"
@@ -69,9 +66,6 @@ export default function Home() {
             {/* Vendor 2 */}
             <VendorCard
               name="Eco Location"
-              rating={4.8}
-              reviewCount={95}
-              yearsActive={5}
               imageUrl="/vendors/eco-location.jpg"
               verified={true}
               speciality="Véhicules économiques et écologiques"
@@ -80,9 +74,6 @@ export default function Home() {
             {/* Vendor 3 */}
             <VendorCard
               name="Family Cars"
-              rating={4.7}
-              reviewCount={112}
-              yearsActive={6}
               imageUrl="/vendors/family-cars.jpg"
               verified={true}
               speciality="Véhicules familiaux spacieux"
